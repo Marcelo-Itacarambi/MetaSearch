@@ -1,3 +1,3 @@
-# MetaSearch
+<h1> MetaSearch
 
-MetaSearch é um script de busca e analise de metadados
+MetaSearch é um script que busca por arquivos de websites e analisa os metadados dos mesmos
