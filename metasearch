@@ -1,0 +1,68 @@
+if [$1 == ''] 2> /dev/null
+then
+    echo '  By: Marcelo Itacarambi'
+    echo 
+    echo '  Esse script busca por arquivos especificos em websites e analisa metadados'
+    echo
+    echo '  Use: ./metasearch + Host + Extensão'
+    echo '  Ex: ./metasearch www.google.com pdf'
+else
+
+# ---------> BUSCA OS ARQUIVOS E VEIRIFICA QUANTOS ARQUIVOS FORAM ENCONTRADOS
+lynx --dump "https://google.com/search?&q=site:$1 ext:$2" | grep ".$2" | cut -d '=' -f 2 | egrep -v "ext:"$2"|accounts.google.com|&ie|," | sed 's/...$//' | grep 'http' > URLS
+echo 'Arquivos Encontrados:' $(wc -l URLS) | sed 's/.....$//'
+echo
+
+# ----------> VERIFICA SE HÁ ALGUM ARQUIVO PARA DOWNLOAD, SE NÃO HOUVER, ENCERRA O PROGRAMA, SE HOUVER, CRIA A PASTA DE DESTINO
+if [ $(wc -l URLS | sed 's/.....$//') -lt 1 ]
+then
+rm URLS 2>/dev/null
+echo 'Nennum arquivo encontrado, encerrando programa...'
+break
+
+else
+mkdir files-$1-$2 2>/dev/null
+
+# ---------> IMPRIME NA TELA, REALIZA O DOWNLOAD, MANDA PARA A PASTA E EXCLUI ARQUIVO BASE
+echo 'Downloads em andamento...'
+for url in $(cat URLS)
+do echo '-->' $url; wget $url -q; mv *.$2 files-$1-$2 2> /dev/null
+done
+
+rm URLS 2>/dev/null
+
+# ---------> IMPRIME QUANTOS ARQUIVOS FORAM BAIXADOS
+echo
+echo 'Arquivos Baixados:' $(ls files-$1-$2 | wc -l)
+echo
+
+# ---------> VERIFICA SE ALGUM ARQUIVO FOI BAIXADO, QUESTIONA SE DEVE ANALISAR METADADOS E CRIA A SUBPASTA DE DESTINO
+if [ $(ls files-$1-$2 | wc -l) -lt 1 ]
+then
+echo 'Houve um erro de download, nenhum arquivo foi baixado :/'
+echo 'Cheque acessando algum arquivo clicando em sua url acima, caso haja èxito repita o processo.'
+rm files-$1-$2 -r
+else
+
+echo 'Analizar Metadados dos Arquivos? (1)Sim (*)Não'
+read analize
+if [ $analize -eq 1 ] 2> /dev/null
+then
+
+mkdir files-$1-$2/metadados/
+
+# ---------> REALIZA A ANALISE DE METADADOS ORGANIZANDO TUDO EM UMA SUBPASTA
+for arq in $(ls files-$1-$2)
+do
+exiftool files-$1-$2/$arq > files-$1-$2/metadados/$arq 
+done
+echo '            Concluido! '
+
+# ---------> ENCERRA O PROGRAMA
+else [ $analize -ne 1 ] 2>/dev/null
+echo '            Encerrando programa... '
+
+fi
+fi
+fi
+fi

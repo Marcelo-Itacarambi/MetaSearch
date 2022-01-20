@@ -1,0 +1,10 @@
+sudo apt-get install lynx
+sudo apt-get install wget
+sudo apt-get install exiftool
+
+echo
+echo '-------------------------------------'
+echo ' Tudo pronto! By: Marcelo Itacarambi '
+echo '-------------------------------------'
+
+sudo rm requisitos
